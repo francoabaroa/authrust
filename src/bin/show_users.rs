@@ -1,23 +1,24 @@
-use self::models::*;
-use diesel::prelude::*;
-use authrust::*;
+use authrust::db::{establish_connection};
+use authrust::models::User;
+use authrust::schema::users::dsl::*;
+use diesel::pg::PgConnection;
+use diesel::Connection;
+use diesel::RunQueryDsl;
+use std::env;
 
 fn main() {
-    use self::schema::users::dsl::*;
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let mut connection = PgConnection::establish(&database_url).expect("Error connecting to the database");
+    let _ = establish_connection(&mut connection).unwrap(); // replace DATABASE_URL with your actual database URL
 
-    let connection = &mut establish_connection();
     let results = users
-        .limit(5)
-        .select(User::as_select())
-        .load(connection)
+        .load::<User>(&mut connection)
         .expect("Error loading users");
 
     println!("Displaying {} users", results.len());
     for user in results {
-        println!("\n");
         println!("{}", user.username);
-        println!("-----------");
-        println!("{}", user.email);
         println!("-----------\n");
+        println!("{}", user.email);
     }
 }

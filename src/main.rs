@@ -1,5 +1,4 @@
 #[macro_use] extern crate rocket;
-use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::State;
 use diesel::r2d2::{self, ConnectionManager};
@@ -9,9 +8,12 @@ use std::env;
 use serde::{Serialize, Deserialize};
 use rocket::fairing::AdHoc;
 
-mod db;  // Include the db module
+pub mod db;
+pub mod models;
+pub mod schema;
+
 use db::{create_user, establish_connection, UserCreationError};
-use crate::db::models::{User};
+use crate::models::User;
 
 #[derive(Serialize, Deserialize)]
 pub struct RegistrationForm {
@@ -32,7 +34,6 @@ fn register(form: Json<RegistrationForm>, conn: &State<DbPool>) -> Result<Json<U
         Err(error) => Err(error),
     }
 }
-
 
 #[launch]
 fn rocket() -> _ {

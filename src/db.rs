@@ -10,11 +10,10 @@ use argon2::{
     Argon2,
 };
 
-pub mod models;
-pub mod schema;
+use crate::models::{User, NewUser};
+use crate::schema::users;
 
-use self::models::{NewUser, User};
-
+#[derive(Debug)]
 pub enum UserCreationError {
     HashingError(argon2::password_hash::Error),
     DieselError(diesel::result::Error),
@@ -50,7 +49,7 @@ impl From<diesel::result::Error> for UserCreationError {
 }
 
 pub fn establish_connection(conn: &mut PgConnection) -> Result<(), UserCreationError> { // Connection passed as an argument
-    use self::schema::users::dsl::users;
+    use crate::schema::users::dsl::users;
 
     let results = users.load::<User>(conn).map_err(UserCreationError::DieselError)?; // Sample query to verify connection
 
@@ -60,8 +59,6 @@ pub fn establish_connection(conn: &mut PgConnection) -> Result<(), UserCreationE
 }
 
 pub fn create_user(conn: &mut PgConnection, username: &str, email: &str, password: &str) -> Result<User, UserCreationError> {
-    use self::schema::users;
-
     // Check if the username or email already exists
     let existing_user = users::table
         .filter(users::username.eq(username))
@@ -91,7 +88,6 @@ pub fn create_user(conn: &mut PgConnection, username: &str, email: &str, passwor
         .get_result(conn)
         .map_err(UserCreationError::DieselError)
 }
-
 
 pub fn hash_password(password: &str) -> Result<String, argon2::password_hash::Error> {
     let salt = env::var("SALT").unwrap(); // temporary

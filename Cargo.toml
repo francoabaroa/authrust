@@ -15,3 +15,9 @@ argon2 = "0.5.1"
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
+
+[lib]
+name = "authrust"
+path = "src/lib.rs"
+
+
