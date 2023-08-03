@@ -23,16 +23,16 @@ pub struct RegistrationForm {
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
 #[post("/register", format = "json", data = "<form>")]
-fn register(form: Json<RegistrationForm>, conn: &State<DbPool>) -> Result<Json<User>, Status> {
-    let mut conn = conn.inner().get().map_err(|_| Status::InternalServerError)?;
+fn register(form: Json<RegistrationForm>, conn: &State<DbPool>) -> Result<Json<User>, UserCreationError> {
+    let mut conn = conn.inner().get().map_err(|_| UserCreationError::DieselError(diesel::result::Error::RollbackTransaction))?;
     let user = create_user(&mut conn, &form.username, &form.email, &form.password);
 
     match user {
         Ok(user) => Ok(Json(user)),
-        Err(UserCreationError::DieselError(_)) => Err(Status::BadRequest),
-        Err(UserCreationError::HashingError(_)) => Err(Status::InternalServerError),
+        Err(error) => Err(error),
     }
 }
+
 
 #[launch]
 fn rocket() -> _ {
