@@ -90,7 +90,7 @@ pub fn create_user(conn: &mut PgConnection, username: &str, email: &str, passwor
 }
 
 pub fn hash_password(password: &str) -> Result<String, argon2::password_hash::Error> {
-    let salt = env::var("SALT").unwrap(); // temporary
+    let salt = env::var("SALT").unwrap(); // temporary! not safe at all
     let salt = SaltString::encode_b64(salt.as_bytes())?;
 
     let argon2 = Argon2::default();
