@@ -9,7 +9,7 @@ use std::env;
 fn main() {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let mut connection = PgConnection::establish(&database_url).expect("Error connecting to the database");
-    let _ = establish_connection(&mut connection).unwrap(); // replace DATABASE_URL with your actual database URL
+    let _ = establish_connection(&mut connection).unwrap();
 
     let results = users
         .load::<User>(&mut connection)
