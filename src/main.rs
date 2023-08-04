@@ -5,9 +5,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::PgConnection;
-use diesel::Connection; // Added to have access to establish method
 use dotenvy::dotenv;
-use std::env;
 use rocket::serde::json::Json;
 use rocket::State;
 use rocket_dyn_templates::Template;
@@ -36,6 +34,13 @@ fn index() -> Template {
     let mut context = HashMap::new();
     context.insert("name", "World"); // temporary
     Template::render("index", &context)
+}
+
+#[get("/login")]
+fn login_page() -> Template {
+    let mut context = HashMap::new();
+    context.insert("name", "World"); // temporary
+    Template::render("login",  &context)
 }
 
 #[get("/register")]
@@ -72,7 +77,7 @@ fn rocket() -> _ {
     rocket::build()
         .attach(Template::fairing())
         .manage(pool)
-        .mount("/", routes![index, register, register_page])
+        .mount("/", routes![index, login_page, register, register_page])
 }
 
 

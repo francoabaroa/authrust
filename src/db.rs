@@ -74,7 +74,6 @@ pub fn create_user(conn: &mut PgConnection, username: &str, email: &str, passwor
         ));
     }
 
-
     let hashed_password = hash_password(password)?;
 
     let new_user = NewUser {
