@@ -1,6 +1,8 @@
 #[macro_use] extern crate rocket;
 use rocket::serde::json::Json;
 use rocket::State;
+use rocket_dyn_templates::Template;
+use std::collections::HashMap;
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::PgConnection;
 use dotenvy::dotenv;
@@ -23,6 +25,13 @@ pub struct RegistrationForm {
 }
 
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
+
+#[get("/")]
+fn index() -> Template {
+    let mut context = HashMap::new();
+    context.insert("name", "World");
+    Template::render("index", &context)
+}
 
 #[post("/register", format = "json", data = "<form>")]
 fn register(form: Json<RegistrationForm>, conn: &State<DbPool>) -> Result<Json<User>, UserCreationError> {
@@ -54,8 +63,9 @@ fn rocket() -> _ {
             });
             rocket
         }))
+        .attach(Template::fairing())
         .manage(pool)
-        .mount("/", routes![register])
+        .mount("/", routes![index, register])
 }
 
 
