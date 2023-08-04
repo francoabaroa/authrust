@@ -8,15 +8,19 @@ edition = "2021"
 [dependencies]
 argon2 = "0.5.1"
 diesel = { version = "2.1.0", features = ["postgres", "r2d2"] }
+diesel_migrations = "2.1.0"
 dotenvy = "0.15"
 handlebars = "4.0.1"
-rocket_dyn_templates = { version = "0.1.0-alpha.21", features = ["handlebars"] }
 rocket = { version = "0.5.0-rc.3", features = ["json"] }
 r2d2 = "0.8.9"
 r2d2-diesel = "1.0.0"
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
+
+[dependencies.rocket_dyn_templates]
+version = "=0.1.0-rc.2"
+features = ["handlebars"]
 
 [lib]
 name = "authrust"

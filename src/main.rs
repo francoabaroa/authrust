@@ -1,21 +1,25 @@
 #[macro_use] extern crate rocket;
+#[macro_use] extern crate diesel_migrations;
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
+
+use diesel::r2d2::{self, ConnectionManager};
+use diesel::PgConnection;
+use diesel::Connection; // Added to have access to establish method
+use dotenvy::dotenv;
+use std::env;
 use rocket::serde::json::Json;
 use rocket::State;
 use rocket_dyn_templates::Template;
 use std::collections::HashMap;
-use diesel::r2d2::{self, ConnectionManager};
-use diesel::PgConnection;
-use dotenvy::dotenv;
-use std::env;
 use serde::{Serialize, Deserialize};
-use rocket::fairing::AdHoc;
 
 pub mod db;
 pub mod models;
 pub mod schema;
 
-use db::{create_user, establish_connection, UserCreationError};
-use crate::models::User;
+use db::{create_user, UserCreationError};
+use models::User;
 
 #[derive(Serialize, Deserialize)]
 pub struct RegistrationForm {
@@ -47,22 +51,17 @@ fn register(form: Json<RegistrationForm>, conn: &State<DbPool>) -> Result<Json<U
 #[launch]
 fn rocket() -> _ {
     dotenv().ok();
+    use std::env;
+
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let manager = ConnectionManager::<PgConnection>::new(database_url);
     let pool = r2d2::Pool::builder().build(manager).expect("Failed to create pool.");
+    let mut conn = pool.get().expect("Failed to get connection from pool");
+
+    // Run embedded migrations
+    conn.run_pending_migrations(MIGRATIONS).unwrap();
 
     rocket::build()
-        .attach(AdHoc::on_ignite("Database Migrations", |rocket| async {
-            let mut conn = rocket
-                .state::<DbPool>()
-                .unwrap()
-                .get()
-                .expect("get connection");
-            establish_connection(&mut conn).unwrap_or_else(|_| {
-                panic!("Failed to establish a database connection.");
-            });
-            rocket
-        }))
         .attach(Template::fairing())
         .manage(pool)
         .mount("/", routes![index, register])

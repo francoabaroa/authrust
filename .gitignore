@@ -1,5 +1,7 @@
-/target/
+/target
 
 .env
 
 TODO.md
+
+fly.toml
