@@ -1,0 +1,56 @@
+<html>
+  <head>
+    <title>Authrust</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        background-color: #D6E3F8;
+        font-family: 'Roboto', sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      button {
+        color: #FFFFFF;
+        background-color: #B7410E;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        transition-duration: 0.4s;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #80330A;
+        color: white;
+      }
+
+      .button-container {
+        display: flex;
+        gap: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Welcome to Authrust{{#if username}}, {{username}}{{/if}}!</h1>
+    {{#if username}}
+    <button onclick="location.href='/logout'">Logout</button>
+    {{else}}
+    <div class="button-container">
+      <a href="/register"><button>Register</button></a>
+      <a href="/login"><button>Login</button></a>
+    </div>
+    {{/if}}
+  </body>
+</html>
+
+
+
