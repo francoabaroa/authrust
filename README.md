@@ -1,4 +1,4 @@
-# Authentication Service in Rust
+# Authentication Service in Rust (IN PROGRESS)
 
 This is a simple, experimental authentication service built in Rust. It includes functionalities such as user registration and viewing all users. More functionality to follow.
 

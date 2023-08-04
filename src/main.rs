@@ -33,7 +33,7 @@ type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 #[get("/")]
 fn index() -> Template {
     let mut context = HashMap::new();
-    context.insert("name", "World");
+    context.insert("name", "World"); // temporary
     Template::render("index", &context)
 }
 
