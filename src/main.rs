@@ -11,6 +11,7 @@ use std::env;
 use rocket::serde::json::Json;
 use rocket::State;
 use rocket_dyn_templates::Template;
+use rocket::form::Form;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
@@ -21,7 +22,7 @@ pub mod schema;
 use db::{create_user, UserCreationError};
 use models::User;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, FromForm)]
 pub struct RegistrationForm {
     username: String,
     email: String,
@@ -37,8 +38,15 @@ fn index() -> Template {
     Template::render("index", &context)
 }
 
-#[post("/register", format = "json", data = "<form>")]
-fn register(form: Json<RegistrationForm>, conn: &State<DbPool>) -> Result<Json<User>, UserCreationError> {
+#[get("/register")]
+fn register_page() -> Template {
+    let mut context = HashMap::new();
+    context.insert("name", "World"); // temporary
+    Template::render("register",  &context)
+}
+
+#[post("/register", data = "<form>")]
+fn register(form: Form<RegistrationForm>, conn: &State<DbPool>) -> Result<Json<User>, UserCreationError> {
     let mut conn = conn.inner().get().map_err(|_| UserCreationError::DieselError(diesel::result::Error::RollbackTransaction))?;
     let user = create_user(&mut conn, &form.username, &form.email, &form.password);
 
@@ -64,7 +72,7 @@ fn rocket() -> _ {
     rocket::build()
         .attach(Template::fairing())
         .manage(pool)
-        .mount("/", routes![index, register])
+        .mount("/", routes![index, register, register_page])
 }
 
 
