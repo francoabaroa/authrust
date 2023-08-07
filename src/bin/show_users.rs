@@ -1,4 +1,4 @@
-use authrust::db::{establish_connection};
+use authrust::db::establish_connection;
 use authrust::models::User;
 use authrust::schema::users::dsl::*;
 use diesel::pg::PgConnection;
@@ -8,7 +8,8 @@ use std::env;
 
 fn main() {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let mut connection = PgConnection::establish(&database_url).expect("Error connecting to the database");
+    let mut connection =
+        PgConnection::establish(&database_url).expect("Error connecting to the database");
     let _ = establish_connection(&mut connection).unwrap();
 
     let results = users

@@ -8,4 +8,3 @@ diesel::table! {
         password -> Varchar,
     }
 }
-
