@@ -8,11 +8,10 @@ use diesel::r2d2::{self, ConnectionManager};
 use diesel::PgConnection;
 use dotenvy::dotenv;
 use rocket::form::Form;
-use rocket::serde::json::Json;
 use rocket::State;
 use rocket::uri;
 use rocket::http::{Cookie, CookieJar};
-use rocket::response::{Redirect};
+use rocket::response::Redirect;
 use time::OffsetDateTime;
 use rocket_dyn_templates::Template;
 use serde::{Deserialize, Serialize};
@@ -23,7 +22,6 @@ pub mod models;
 pub mod schema;
 
 use db::{create_user, AuthenticationError, UserCreationError};
-use models::User;
 
 #[derive(Serialize, Deserialize, FromForm)]
 pub struct RegistrationForm {
