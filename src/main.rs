@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate rocket;
-#[macro_use]
 extern crate diesel_migrations;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
@@ -11,6 +10,10 @@ use dotenvy::dotenv;
 use rocket::form::Form;
 use rocket::serde::json::Json;
 use rocket::State;
+use rocket::uri;
+use rocket::http::{Cookie, CookieJar};
+use rocket::response::{Redirect};
+use time::OffsetDateTime;
 use rocket_dyn_templates::Template;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -38,44 +41,82 @@ pub struct LoginForm {
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
 #[get("/")]
-fn index() -> Template {
+fn index(cookies: &CookieJar<'_>) -> Template {
     let mut context = HashMap::new();
-    context.insert("name", "World"); // temporary
+    if let Some(user_cookie) = cookies.get("user") {
+        context.insert("username", user_cookie.value().to_string());
+    }
     Template::render("index", &context)
 }
 
 #[get("/login")]
-fn login_page() -> Template {
+fn login_page(cookies: &CookieJar<'_>) -> Result<Template, Redirect> {
+    // Check for a "user" cookie
+    if cookies.get("user").is_some() {
+        // Redirect the user to the main page if the cookie exists
+        return Err(Redirect::to("/"));
+    }
+
+    // Render the login template
     let mut context = HashMap::new();
     context.insert("name", "World"); // temporary
-    Template::render("login", &context)
+    Ok(Template::render("login", &context))
 }
 
 #[post("/login", data = "<form>")]
-fn login(form: Form<LoginForm>, conn: &State<DbPool>) -> Result<Json<User>, AuthenticationError> {
+fn login(
+    form: Form<LoginForm>,
+    conn: &State<DbPool>,
+    cookies: &CookieJar<'_>,
+) -> Result<Redirect, AuthenticationError> {
+    // Check for a "user" cookie
+    if cookies.get("user").is_some() {
+        // Redirect the user to the main page if the cookie exists
+        return Ok(Redirect::to("/"));
+    }
+
     let mut conn = conn.inner().get().map_err(|_| {
         AuthenticationError::DieselError(diesel::result::Error::RollbackTransaction)
     })?;
     let user = db::authenticate_user(&mut conn, &form.username, &form.password);
 
     match user {
-        Ok(user) => Ok(Json(user)),
+        Ok(user) => {
+            // Create the cookie
+            let cookie = Cookie::build("user", user.username.clone())
+                .path("/")
+                .expires(OffsetDateTime::now_utc() + time::Duration::days(1)) // 24 hours
+                .finish();
+
+            cookies.add(cookie);
+
+            // Redirect
+            Ok(Redirect::to("/"))
+        },
         Err(error) => Err(error),
     }
 }
 
 #[get("/register")]
-fn register_page() -> Template {
+fn register_page(cookies: &CookieJar<'_>) -> Result<Template, Redirect> {
+    // Check for a "user" cookie
+    if cookies.get("user").is_some() {
+        // Redirect the user to the main page if the cookie exists
+        return Err(Redirect::to("/"));
+    }
+
+    // Render the registration template
     let mut context = HashMap::new();
     context.insert("name", "World"); // temporary
-    Template::render("register", &context)
+    Ok(Template::render("register", &context))
 }
 
 #[post("/register", data = "<form>")]
 fn register(
     form: Form<RegistrationForm>,
     conn: &State<DbPool>,
-) -> Result<Json<User>, UserCreationError> {
+    cookies: &CookieJar<'_>,
+) -> Result<Redirect, UserCreationError> {
     let mut conn = conn
         .inner()
         .get()
@@ -83,7 +124,18 @@ fn register(
     let user = create_user(&mut conn, &form.username, &form.email, &form.password);
 
     match user {
-        Ok(user) => Ok(Json(user)),
+        Ok(_) => {
+            // Create the cookie
+            let cookie = Cookie::build("user", form.username.clone())
+                .path("/")
+                .expires(OffsetDateTime::now_utc() + time::Duration::days(1)) // 24 hours
+                .finish();
+
+            cookies.add(cookie);
+
+            // Redirect
+            Ok(Redirect::to(uri!("/")))
+        },
         Err(error) => Err(error),
     }
 }
