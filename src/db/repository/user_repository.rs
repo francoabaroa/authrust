@@ -1,5 +1,5 @@
 use argon2::{
-    password_hash::{PasswordHasher, PasswordVerifier},
+    password_hash::{PasswordHasher, PasswordVerifier, SaltString, rand_core},
     Argon2,
 };
 use diesel::pg::PgConnection;
@@ -182,12 +182,11 @@ impl UserRepository {
     }
 
     pub fn hash_password(password: &str) -> Result<String, argon2::password_hash::Error> {
-        let salt = std::env::var("SALT").unwrap(); // temporary! not safe at all
-        let salt = argon2::password_hash::SaltString::encode_b64(salt.as_bytes())?;
-
+        let salt = SaltString::generate(&mut rand_core::OsRng);
         let argon2 = Argon2::default();
-        let password_hash = argon2.hash_password(password.as_bytes(), salt.as_salt())?;
 
+        let password_hash = argon2.hash_password(password.as_bytes(), &salt)?;
         Ok(password_hash.to_string())
     }
+
 }

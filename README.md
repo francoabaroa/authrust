@@ -9,14 +9,11 @@ This is a simple, experimental authentication service built in Rust. It includes
 
 ## Environment Variables
 
-You need to set the following environment variables for database configuration and security:
+You need to set the following environment variable for database configuration:
 
 - `DATABASE_URL`: The connection string of your PostgreSQL database in the format `postgres://username:password@localhost/database_name`.
-- `SALT`: The salt used for hashing the passwords.
 
-Please note `SALT` is temporary; this is not safe at all and each user should have an individual salt.
-
-You can set these variables in your environment or in a `.env` file at the root of your project.
+You can set this variable in your environment or in a `.env` file at the root of your project.
 
 ## Running the Project
 
