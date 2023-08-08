@@ -11,7 +11,7 @@ diesel = { version = "2.1.0", features = ["postgres", "r2d2"] }
 diesel_migrations = "2.1.0"
 dotenvy = "0.15"
 handlebars = "4.0.1"
-rocket = { version = "0.5.0-rc.3", features = ["json"] }
+rocket = { version = "0.5.0-rc.3", features = ["json", "secrets"] }
 r2d2 = "0.8.9"
 r2d2-diesel = "1.0.0"
 serde = "1.0"

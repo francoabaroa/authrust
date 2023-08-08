@@ -20,7 +20,7 @@ pub fn configure() -> Vec<rocket::Route> {
 #[get("/")]
 pub fn index(cookies: &CookieJar<'_>, sessions: &State<SessionStore>) -> Template {
     let mut context = HashMap::new();
-    if let Some(session_cookie) = cookies.get("session_id") {
+    if let Some(session_cookie) = cookies.get_private("session_id") {
         let session_id = session_cookie.value();
         if let Some(user_session) = sessions.inner().get_user(session_id) {
             context.insert("username", user_session.username);

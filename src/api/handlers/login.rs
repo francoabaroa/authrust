@@ -18,9 +18,9 @@ pub struct LoginForm {
 
 #[get("/login")]
 pub fn login_page(cookies: &CookieJar<'_>) -> Result<Template, Redirect> {
-    // Check for a "session_id" cookie
-    if cookies.get("session_id").is_some() {
-        // Redirect the user to the main page if the cookie exists
+    // Check for a "session_id" private cookie
+    if cookies.get_private("session_id").is_some() {
+        // Redirect the user to the main page if the private cookie exists
         return Err(Redirect::to("/"));
     }
     let mut context = HashMap::new();
@@ -53,13 +53,13 @@ pub fn login(
             };
             let session_id = sessions.inner().create_session(user_session);
 
-            // Create the cookie
-            let cookie = Cookie::build("session_id", session_id)
+            // Create the private cookie
+            let private_cookie = Cookie::build("session_id", session_id)
                 .path("/")
                 .expires(OffsetDateTime::now_utc() + time::Duration::days(1)) // 24 hours
                 .finish();
 
-            cookies.add(cookie);
+            cookies.add_private(private_cookie);
 
             Ok(Redirect::to("/"))
         }

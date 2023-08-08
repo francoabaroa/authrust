@@ -1,0 +1,2 @@
+[default]
+secret_key = { env = "ROCKET_SECRET_KEY" }
