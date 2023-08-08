@@ -22,10 +22,10 @@ pub fn login_page(cookies: &CookieJar<'_>) -> Result<Template, Redirect> {
         // Redirect the user to the main page if the cookie exists
         return Err(Redirect::to("/"));
     }
-
-    // Render the login template
     let mut context = HashMap::new();
     context.insert("name", "World"); // temporary
+
+    // Render the login template
     Ok(Template::render("login", &context))
 }
 
@@ -34,7 +34,7 @@ pub fn login(
     form: Form<LoginForm>,
     conn: &State<DbPool>,
     cookies: &CookieJar<'_>,
-) -> Result<Redirect, AuthenticationError> {
+) -> Result<Redirect, Template> {
     // Check for a "user" cookie
     if cookies.get("user").is_some() {
         // Redirect the user to the main page if the cookie exists
@@ -42,9 +42,12 @@ pub fn login(
     }
 
     let mut conn = conn.inner().get().map_err(|_| {
-        AuthenticationError::DieselError(diesel::result::Error::RollbackTransaction)
+        let mut context = HashMap::new();
+        context.insert("error_message", "Database connection error.");
+        return Template::render("error", context);
     })?;
-    let user = UserRepository::authenticate_user(&mut conn, &form.username, &form.password);
+    let user: Result<crate::db::models::User, AuthenticationError> =
+        UserRepository::authenticate_user(&mut conn, &form.username, &form.password);
 
     match user {
         Ok(user) => {
@@ -56,9 +59,16 @@ pub fn login(
 
             cookies.add(cookie);
 
-            // Redirect
             Ok(Redirect::to("/"))
         }
-        Err(error) => Err(error),
+        Err(error) => {
+            let mut context = HashMap::new();
+            // Assuming `error` can be converted to a string, otherwise, adapt this line
+            context.insert(
+                "error_message",
+                format!("Authentication error: {}", error.to_string()),
+            );
+            Err(Template::render("error", context))
+        }
     }
 }

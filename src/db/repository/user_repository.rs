@@ -11,6 +11,7 @@ use rocket::http::ContentType;
 use rocket::http::Status;
 use rocket::response::Responder;
 use rocket::Response;
+use std::fmt;
 
 use crate::db::models::{NewUser, User};
 use crate::db::schema::users;
@@ -35,6 +36,17 @@ pub enum AuthenticationError {
 impl From<argon2::password_hash::Error> for AuthenticationError {
     fn from(err: argon2::password_hash::Error) -> AuthenticationError {
         AuthenticationError::HashingError(err)
+    }
+}
+
+impl fmt::Display for AuthenticationError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            AuthenticationError::DieselError(err) => write!(f, "Database error: {}", err),
+            AuthenticationError::UserNotFound => write!(f, "User not found"),
+            AuthenticationError::PasswordMismatch => write!(f, "Password mismatch"),
+            AuthenticationError::HashingError(err) => write!(f, "Hashing error: {}", err),
+        }
     }
 }
 
@@ -79,6 +91,16 @@ impl<'r> Responder<'r, 'static> for UserCreationError {
                 .sized_body(msg.len(), std::io::Cursor::new(msg))
                 .status(Status::BadRequest)
                 .ok(),
+        }
+    }
+}
+
+impl fmt::Display for UserCreationError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            UserCreationError::HashingError(err) => write!(f, "Password hashing error: {}", err),
+            UserCreationError::DieselError(err) => write!(f, "Database error: {}", err),
+            UserCreationError::DuplicateUser(msg) => write!(f, "Duplicate user: {}", msg),
         }
     }
 }

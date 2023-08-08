@@ -1,4 +1,4 @@
-use crate::db::repository::user_repository::{UserCreationError, UserRepository};
+use crate::db::repository::user_repository::UserRepository;
 use crate::DbPool;
 use rocket::form::Form;
 use rocket::http::{Cookie, CookieJar};
@@ -35,11 +35,12 @@ pub fn register(
     form: Form<RegistrationForm>,
     conn: &State<DbPool>,
     cookies: &CookieJar<'_>,
-) -> Result<Redirect, UserCreationError> {
-    let mut conn = conn
-        .inner()
-        .get()
-        .map_err(|_| UserCreationError::DieselError(diesel::result::Error::RollbackTransaction))?;
+) -> Result<Redirect, Template> {
+    let mut conn = conn.inner().get().map_err(|_| {
+        let mut context = HashMap::new();
+        context.insert("error_message", "Database connection error.");
+        return Template::render("error", context);
+    })?;
     let user = UserRepository::create_user(&mut conn, &form.username, &form.email, &form.password);
 
     match user {
@@ -55,6 +56,13 @@ pub fn register(
             // Redirect
             Ok(Redirect::to(uri!("/")))
         }
-        Err(error) => Err(error),
+        Err(error) => {
+            let mut context = HashMap::new();
+            context.insert(
+                "error_message",
+                format!("User creation error: {}", error.to_string()),
+            );
+            Err(Template::render("error", context))
+        }
     }
 }
