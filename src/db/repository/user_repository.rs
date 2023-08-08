@@ -1,5 +1,5 @@
 use argon2::{
-    password_hash::{PasswordHasher, PasswordVerifier, SaltString, rand_core},
+    password_hash::{rand_core, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
 use diesel::pg::PgConnection;
@@ -188,5 +188,4 @@ impl UserRepository {
         let password_hash = argon2.hash_password(password.as_bytes(), &salt)?;
         Ok(password_hash.to_string())
     }
-
 }

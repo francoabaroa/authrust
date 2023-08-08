@@ -1,4 +1,5 @@
 use crate::db::repository::user_repository::{AuthenticationError, UserRepository};
+use crate::session::{SessionStore, UserSession};
 use crate::DbPool;
 use rocket::form::Form;
 use rocket::http::{Cookie, CookieJar};
@@ -17,8 +18,8 @@ pub struct LoginForm {
 
 #[get("/login")]
 pub fn login_page(cookies: &CookieJar<'_>) -> Result<Template, Redirect> {
-    // Check for a "user" cookie
-    if cookies.get("user").is_some() {
+    // Check for a "session_id" cookie
+    if cookies.get("session_id").is_some() {
         // Redirect the user to the main page if the cookie exists
         return Err(Redirect::to("/"));
     }
@@ -34,13 +35,8 @@ pub fn login(
     form: Form<LoginForm>,
     conn: &State<DbPool>,
     cookies: &CookieJar<'_>,
+    sessions: &State<SessionStore>,
 ) -> Result<Redirect, Template> {
-    // Check for a "user" cookie
-    if cookies.get("user").is_some() {
-        // Redirect the user to the main page if the cookie exists
-        return Ok(Redirect::to("/"));
-    }
-
     let mut conn = conn.inner().get().map_err(|_| {
         let mut context = HashMap::new();
         context.insert("error_message", "Database connection error.");
@@ -51,8 +47,14 @@ pub fn login(
 
     match user {
         Ok(user) => {
+            let user_session = UserSession {
+                username: user.username.clone(),
+                email: user.email.clone(),
+            };
+            let session_id = sessions.inner().create_session(user_session);
+
             // Create the cookie
-            let cookie = Cookie::build("user", user.username.clone())
+            let cookie = Cookie::build("session_id", session_id)
                 .path("/")
                 .expires(OffsetDateTime::now_utc() + time::Duration::days(1)) // 24 hours
                 .finish();
@@ -63,7 +65,6 @@ pub fn login(
         }
         Err(error) => {
             let mut context = HashMap::new();
-            // Assuming `error` can be converted to a string, otherwise, adapt this line
             context.insert(
                 "error_message",
                 format!("Authentication error: {}", error.to_string()),

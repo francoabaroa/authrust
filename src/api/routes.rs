@@ -1,4 +1,6 @@
+use crate::session::SessionStore;
 use rocket::http::CookieJar;
+use rocket::State;
 use rocket_dyn_templates::Template;
 use std::collections::HashMap;
 
@@ -16,10 +18,13 @@ pub fn configure() -> Vec<rocket::Route> {
 }
 
 #[get("/")]
-pub fn index(cookies: &CookieJar<'_>) -> Template {
+pub fn index(cookies: &CookieJar<'_>, sessions: &State<SessionStore>) -> Template {
     let mut context = HashMap::new();
-    if let Some(user_cookie) = cookies.get("user") {
-        context.insert("username", user_cookie.value().to_string());
+    if let Some(session_cookie) = cookies.get("session_id") {
+        let session_id = session_cookie.value();
+        if let Some(user_session) = sessions.inner().get_user(session_id) {
+            context.insert("username", user_session.username);
+        }
     }
     Template::render("index", &context)
 }

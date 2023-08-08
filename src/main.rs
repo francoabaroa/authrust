@@ -11,6 +11,9 @@ use std::env;
 pub mod api;
 pub mod db;
 pub mod server;
+pub mod session;
+
+use session::SessionStore;
 
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
@@ -29,9 +32,11 @@ fn rocket() -> _ {
     conn.run_pending_migrations(MIGRATIONS).unwrap();
 
     let routes = server::start();
+    let session_store = SessionStore::new();
 
     rocket::build()
         .attach(Template::fairing())
+        .manage(session_store)
         .manage(pool)
         .mount("/", routes)
         .register("/", catchers![api::routes::not_found])
