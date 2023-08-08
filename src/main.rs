@@ -34,4 +34,5 @@ fn rocket() -> _ {
         .attach(Template::fairing())
         .manage(pool)
         .mount("/", routes)
+        .register("/", catchers![api::routes::not_found])
 }

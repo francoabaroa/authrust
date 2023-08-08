@@ -23,3 +23,10 @@ pub fn index(cookies: &CookieJar<'_>) -> Template {
     }
     Template::render("index", &context)
 }
+
+#[catch(404)]
+pub fn not_found() -> Template {
+    let mut context = HashMap::new();
+    context.insert("error_message", "Page not found");
+    Template::render("error", &context)
+}
