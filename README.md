@@ -9,11 +9,12 @@ This is a simple, experimental authentication service built in Rust. It includes
 
 ## Environment Variables
 
-You need to set the following environment variable for database configuration:
+You need to set the following environment variables for database configuration:
 
 - `DATABASE_URL`: The connection string of your PostgreSQL database in the format `postgres://username:password@localhost/database_name`.
+- `ROCKET_SECRET_KEY`: The secret key Rocket will use to encrypt cookies. You can use `openssl rand -base64 32` to generate a new key.
 
-You can set this variable in your environment or in a `.env` file at the root of your project.
+You can set this variables in your environment or in a `.env` file at the root of your project.
 
 ## Running the Project
 
