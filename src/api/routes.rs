@@ -2,12 +2,13 @@ use rocket::http::CookieJar;
 use rocket_dyn_templates::Template;
 use std::collections::HashMap;
 
-use crate::api::handlers::{login, register};
+use crate::api::handlers::{login, logout, register};
 
 pub fn configure() -> Vec<rocket::Route> {
     rocket::routes![
         login::login_page,
         login::login,
+        logout::logout,
         register::register_page,
         register::register,
         index
