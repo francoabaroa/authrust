@@ -1,56 +1,77 @@
 <html>
-  <head>
-    <title>Authrust</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-      body {
-        background-color: #D6E3F8;
-        font-family: 'Roboto', sans-serif;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        margin: 0;
-      }
 
-      button {
-        color: #FFFFFF;
-        background-color: #B7410E;
-        border: none;
-        padding: 10px 20px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        margin: 4px 2px;
-        transition-duration: 0.4s;
-        cursor: pointer;
-      }
+<head>
+  <title>Authrust</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1"> <!-- Add this line -->
+  <style>
+    body {
+      background-color: #D6E3F8;
+      font-family: 'Roboto', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
 
-      button:hover {
-        background-color: #80330A;
-        color: white;
-      }
+    h1 {
+      font-size: 24px;
+      /* Increase font size for larger screens */
+    }
 
+    button {
+      color: #FFFFFF;
+      background-color: #B7410E;
+      border: none;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      transition-duration: 0.4s;
+      cursor: pointer;
+    }
+
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      /* Stack buttons vertically on small screens */
+      gap: 10px;
+      align-items: center;
+    }
+
+    @media screen and (min-width: 768px) {
       .button-container {
-        display: flex;
-        gap: 10px;
+        flex-direction: row;
+        /* Display buttons horizontally on larger screens */
       }
-    </style>
-  </head>
-  <body>
-    <h1>Welcome to Authrust{{#if username}}, {{username}}{{/if}}!</h1>
-    {{#if username}}
-    <button onclick="location.href='/logout'">Logout</button>
-    {{else}}
-    <div class="button-container">
-      <a href="/register"><button>Register</button></a>
-      <a href="/login"><button>Login</button></a>
-    </div>
-    {{/if}}
-  </body>
+
+      h1 {
+        font-size: 36px;
+        /* Increase font size for larger screens */
+      }
+    }
+
+    button:hover {
+      background-color: #80330A;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Welcome to Authrust{{#if username}}, {{username}}{{/if}}!</h1>
+  {{#if username}}
+  <button onclick="location.href='/logout'">Logout</button>
+  {{else}}
+  <div class="button-container">
+    <a href="/register"><button>Register</button></a>
+    <a href="/login"><button>Login</button></a>
+  </div>
+  {{/if}}
+</body>
+
 </html>
-
-
-

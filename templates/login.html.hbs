@@ -3,6 +3,7 @@
 <head>
   <title>Login</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1"> <!-- Add this line -->
   <style>
     body {
       background-color: #D6E3F8;
@@ -15,6 +16,7 @@
       margin: 0;
     }
 
+    h1,
     h2,
     h3 {
       text-align: center;
@@ -23,7 +25,9 @@
     form {
       display: flex;
       flex-direction: column;
-      width: 300px;
+      width: 80%;
+      max-width: 300px;
+      /* Set a max width for larger screens */
     }
 
     form input[type=text],
