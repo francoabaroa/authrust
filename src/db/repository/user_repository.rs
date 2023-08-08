@@ -1,17 +1,21 @@
 use argon2::{
-    password_hash::{PasswordHasher, PasswordVerifier, SaltString},
+    password_hash::{PasswordHasher, PasswordVerifier},
     Argon2,
 };
 use diesel::pg::PgConnection;
-use diesel::prelude::*;
+use diesel::ExpressionMethods;
+use diesel::OptionalExtension;
+use diesel::QueryDsl;
+use diesel::RunQueryDsl;
 use rocket::http::ContentType;
 use rocket::http::Status;
 use rocket::response::Responder;
 use rocket::Response;
-use std::env;
 
-use crate::models::{NewUser, User};
-use crate::schema::users;
+use crate::db::models::{NewUser, User};
+use crate::db::schema::users;
+
+pub struct UserRepository;
 
 #[derive(Debug)]
 pub enum UserCreationError {
@@ -91,89 +95,77 @@ impl From<diesel::result::Error> for UserCreationError {
     }
 }
 
-pub fn establish_connection(conn: &mut PgConnection) -> Result<(), UserCreationError> {
-    // Connection passed as an argument
-    use crate::schema::users::dsl::users;
+impl UserRepository {
+    pub fn authenticate_user(
+        conn: &mut PgConnection,
+        username: &str,
+        password: &str,
+    ) -> Result<User, AuthenticationError> {
+        let user = users::table
+            .filter(users::username.eq(username))
+            .first::<User>(conn)
+            .optional()
+            .map_err(AuthenticationError::DieselError)?;
 
-    let results = users
-        .load::<User>(conn)
-        .map_err(UserCreationError::DieselError)?; // Sample query to verify connection
-
-    println!("Loaded users: {:?}", results);
-
-    Ok(())
-}
-
-pub fn authenticate_user(
-    conn: &mut PgConnection,
-    username: &str,
-    password: &str,
-) -> Result<User, AuthenticationError> {
-    // Find user by username
-    let user = users::table
-        .filter(users::username.eq(username))
-        .first::<User>(conn)
-        .optional()
-        .map_err(AuthenticationError::DieselError)?;
-
-    match user {
-        Some(user) => {
-            let password_hash = argon2::PasswordHash::new(&user.password)?;
-            let argon2 = Argon2::default();
-            if argon2
-                .verify_password(password.as_bytes(), &password_hash)
-                .is_ok()
-            {
-                Ok(user)
-            } else {
-                Err(AuthenticationError::PasswordMismatch)
+        match user {
+            Some(user) => {
+                let password_hash = argon2::PasswordHash::new(&user.password)?;
+                let argon2 = Argon2::default();
+                if argon2
+                    .verify_password(password.as_bytes(), &password_hash)
+                    .is_ok()
+                {
+                    Ok(user)
+                } else {
+                    Err(AuthenticationError::PasswordMismatch)
+                }
             }
+            None => Err(AuthenticationError::UserNotFound),
         }
-        None => Err(AuthenticationError::UserNotFound),
-    }
-}
-
-pub fn create_user(
-    conn: &mut PgConnection,
-    username: &str,
-    email: &str,
-    password: &str,
-) -> Result<User, UserCreationError> {
-    // Check if the username or email already exists
-    let existing_user = users::table
-        .filter(users::username.eq(username))
-        .or_filter(users::email.eq(email))
-        .first::<User>(conn)
-        .optional()
-        .map_err(UserCreationError::DieselError)?;
-
-    // If the user already exists, return an error
-    if existing_user.is_some() {
-        return Err(UserCreationError::DuplicateUser(
-            "Username or email already exists".into(),
-        ));
     }
 
-    let hashed_password = hash_password(password)?;
+    pub fn create_user(
+        conn: &mut PgConnection,
+        username: &str,
+        email: &str,
+        password: &str,
+    ) -> Result<User, UserCreationError> {
+        // Check if the username or email already exists
+        let existing_user = users::table
+            .filter(users::username.eq(username))
+            .or_filter(users::email.eq(email))
+            .first::<User>(conn)
+            .optional()
+            .map_err(UserCreationError::DieselError)?;
 
-    let new_user = NewUser {
-        username,
-        email,
-        password: &hashed_password,
-    };
+        // If the user already exists, return an error
+        if existing_user.is_some() {
+            return Err(UserCreationError::DuplicateUser(
+                "Username or email already exists".into(),
+            ));
+        }
 
-    diesel::insert_into(users::table)
-        .values(&new_user)
-        .get_result(conn)
-        .map_err(UserCreationError::DieselError)
-}
+        let hashed_password = Self::hash_password(password)?;
 
-pub fn hash_password(password: &str) -> Result<String, argon2::password_hash::Error> {
-    let salt = env::var("SALT").unwrap(); // temporary! not safe at all
-    let salt = SaltString::encode_b64(salt.as_bytes())?;
+        let new_user = NewUser {
+            username,
+            email,
+            password: &hashed_password,
+        };
 
-    let argon2 = Argon2::default();
-    let password_hash = argon2.hash_password(password.as_bytes(), salt.as_salt())?;
+        diesel::insert_into(users::table)
+            .values(&new_user)
+            .get_result(conn)
+            .map_err(UserCreationError::DieselError)
+    }
 
-    Ok(password_hash.to_string())
+    pub fn hash_password(password: &str) -> Result<String, argon2::password_hash::Error> {
+        let salt = std::env::var("SALT").unwrap(); // temporary! not safe at all
+        let salt = argon2::password_hash::SaltString::encode_b64(salt.as_bytes())?;
+
+        let argon2 = Argon2::default();
+        let password_hash = argon2.hash_password(password.as_bytes(), salt.as_salt())?;
+
+        Ok(password_hash.to_string())
+    }
 }

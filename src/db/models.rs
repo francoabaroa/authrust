@@ -1,4 +1,4 @@
-use crate::schema::users;
+use crate::db::schema::users;
 use diesel::prelude::*;
 use serde::Serialize;
 

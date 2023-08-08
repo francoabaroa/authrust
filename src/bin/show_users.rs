@@ -1,6 +1,6 @@
-use authrust::db::establish_connection;
-use authrust::models::User;
-use authrust::schema::users::dsl::*;
+use authrust::db::connection::establish_connection;
+use authrust::db::models::User;
+use authrust::db::schema::users::dsl::*;
 use diesel::pg::PgConnection;
 use diesel::Connection;
 use diesel::RunQueryDsl;

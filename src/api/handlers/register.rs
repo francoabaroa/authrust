@@ -1,4 +1,4 @@
-use crate::db::{create_user, UserCreationError};
+use crate::db::repository::user_repository::{UserCreationError, UserRepository};
 use crate::DbPool;
 use rocket::form::Form;
 use rocket::http::{Cookie, CookieJar};
@@ -40,7 +40,7 @@ pub fn register(
         .inner()
         .get()
         .map_err(|_| UserCreationError::DieselError(diesel::result::Error::RollbackTransaction))?;
-    let user = create_user(&mut conn, &form.username, &form.email, &form.password);
+    let user = UserRepository::create_user(&mut conn, &form.username, &form.email, &form.password);
 
     match user {
         Ok(_) => {

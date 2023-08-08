@@ -1,4 +1,4 @@
-use crate::db::{authenticate_user, AuthenticationError};
+use crate::db::repository::user_repository::{AuthenticationError, UserRepository};
 use crate::DbPool;
 use rocket::form::Form;
 use rocket::http::{Cookie, CookieJar};
@@ -44,7 +44,7 @@ pub fn login(
     let mut conn = conn.inner().get().map_err(|_| {
         AuthenticationError::DieselError(diesel::result::Error::RollbackTransaction)
     })?;
-    let user = authenticate_user(&mut conn, &form.username, &form.password);
+    let user = UserRepository::authenticate_user(&mut conn, &form.username, &form.password);
 
     match user {
         Ok(user) => {

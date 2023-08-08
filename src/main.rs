@@ -10,8 +10,6 @@ use std::env;
 
 pub mod api;
 pub mod db;
-pub mod models;
-pub mod schema;
 pub mod server;
 
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
