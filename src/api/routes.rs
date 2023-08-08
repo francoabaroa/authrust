@@ -1,6 +1,6 @@
 use rocket::http::CookieJar;
-use std::collections::HashMap;
 use rocket_dyn_templates::Template;
+use std::collections::HashMap;
 
 use crate::api::handlers::{login, register};
 

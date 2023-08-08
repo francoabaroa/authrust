@@ -1,13 +1,13 @@
 use crate::db::{create_user, UserCreationError};
-use rocket::form::Form;
-use rocket::State;
-use rocket::http::{Cookie, CookieJar};
-use std::collections::HashMap;
-use rocket::response::Redirect;
-use rocket_dyn_templates::Template;
-use time::OffsetDateTime;
-use serde::{Deserialize, Serialize};
 use crate::DbPool;
+use rocket::form::Form;
+use rocket::http::{Cookie, CookieJar};
+use rocket::response::Redirect;
+use rocket::State;
+use rocket_dyn_templates::Template;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use time::OffsetDateTime;
 
 #[derive(Serialize, Deserialize, FromForm)]
 pub struct RegistrationForm {
@@ -54,7 +54,7 @@ pub fn register(
 
             // Redirect
             Ok(Redirect::to(uri!("/")))
-        },
+        }
         Err(error) => Err(error),
     }
 }

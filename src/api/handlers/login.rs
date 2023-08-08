@@ -1,13 +1,13 @@
-use crate::db::{AuthenticationError, authenticate_user};
+use crate::db::{authenticate_user, AuthenticationError};
+use crate::DbPool;
 use rocket::form::Form;
-use rocket::State;
 use rocket::http::{Cookie, CookieJar};
 use rocket::response::Redirect;
+use rocket::State;
 use rocket_dyn_templates::Template;
-use time::OffsetDateTime;
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
-use crate::DbPool;
+use std::collections::HashMap;
+use time::OffsetDateTime;
 
 #[derive(Serialize, Deserialize, FromForm)]
 pub struct LoginForm {
@@ -58,7 +58,7 @@ pub fn login(
 
             // Redirect
             Ok(Redirect::to("/"))
-        },
+        }
         Err(error) => Err(error),
     }
 }

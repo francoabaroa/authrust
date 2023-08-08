@@ -8,11 +8,11 @@ use dotenvy::dotenv;
 use rocket_dyn_templates::Template;
 use std::env;
 
+pub mod api;
 pub mod db;
 pub mod models;
 pub mod schema;
 pub mod server;
-pub mod api;
 
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
